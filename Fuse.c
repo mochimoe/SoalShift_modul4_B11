@@ -316,18 +316,15 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,struc
 	return res;
 }
 
-static int xmp_create(const char *path, mode_t mode,
-                      struct fuse_file_info *fi)
+static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
     int res;
-
 	char final[1000];
-	char extension[1000];
-	// char temp[1000];
-	int i,j;
 	char ch;
+	int i,j;
+	char extension[1000];
 
-	if(strcmp(path,"/") == 0)
+	if(strcmp(path,"/") == 0) 
 	{
 		path=dirpath;
 		sprintf(final,"%s",path);
@@ -357,7 +354,6 @@ static int xmp_create(const char *path, mode_t mode,
 		
 		pid_t child_id;
 		child_id=fork();
-		
 		if(child_id!=0) {
 			sprintf(extension,"%s.`[S%%",final);
 			char* argv[] = {"mv",final,extension,NULL};
@@ -379,24 +375,46 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 {
     int fd;
     int res;
-
+	char namewo[1000];
 	char final[1000];
 	int key = 17;
 	char ch;
 	int i,j;
 	char fpath[1000];
+	char fpathB[1000];
+	char backup[1000];
+	char habistitik[100];
 	char extension[1000];
+	char temp[1000];
+	time_t rawtime;
+
+	time(&rawtime);
+	struct tm* ptm=localtime(&rawtime);
+
+	for(i=0;i<strlen(path);i++) {
+		if(path[i]=='.') {
+			int k=0;
+			for(j=i;j<strlen(path);j++) {
+				habistitik[k]=path[j];
+			}
+			break;
+		}
+	}
 
 	strcpy(extension,path);
+	strcpy(temp,strtok(extension,"."));
+	sprintf(namewo,"%s_%d-%d-%d_%d:%d:%d.%s\n",namewo,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,habistitik);
+	sprintf(backup,"%s/XB.Jhu",dirpath);
+	mkdir(backup,0770);
 
 	if(strcmp(path,"/") == 0)
 	{
 		path=dirpath;
-		sprintf(final,"%s",extension);
+		sprintf(final,"%s",path);
 	}
 	else {
-		char encode[strlen(extension)];
-		strcpy(encode,extension);
+		char encode[strlen(path)];
+		strcpy(encode,path);
 		for(i=0;i<strlen(encode);i++) {
 			ch=encode[i];
 			if(ch=='/') {
@@ -414,9 +432,44 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 		sprintf(final,"%s%s",dirpath,encode);
 	}
 
-	strcpy(fpath,final);
+		if(strcmp(namewo,"/") == 0) //backup files
+	{
+		path=dirpath;
+		sprintf(final,"%s",path);
+	}
+	else {
+		char encode[strlen(namewo)];
+		strcpy(encode,namewo);
+		for(i=0;i<strlen(encode);i++) {
+			ch=encode[i];
+			if(ch=='/') {
+				encode[i]=ch;
+			}
+			else {
+				j=0;
+				while(ch!=charlist[j]) {
+					j++;
+				}
+				j=(j+key)%strlen(charlist);
+				encode[i]=charlist[j];
+			}
+		}
+		strcpy(namewo,encode);
+		sprintf(fpathB,"%s%s",backup,encode);
+	}
 
+	strcpy(fpath,final);
     fd = open(fpath, O_WRONLY);
+
+	pid_t child_id;
+	child_id = fork();
+
+	if(child_id!=0) {
+		char* argv[] = {"cp",fpath,namewo,NULL};
+		execv("/bin/cp",argv);
+	}
+
+
     if(fd == -1)
         return -errno;
 
@@ -428,6 +481,68 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
     return res;
 }
 
+// static int xmp_unlink(const char* path) {
+// 	int res;
+// 	char final[1000];
+// 	char namewo[1000];
+// 	char compres[1000];
+// 	char encode[strlen(path)];
+// 	char recyclebin[1000];
+// 	char temp[1000];
+// 	char titik[8] = ".";
+// 	int i,j;
+// 	char ch;
+// 	time_t rawtime;
+
+// 	time(&rawtime);
+// 	struct tm* ptm=localtime(&rawtime);
+	
+// 	strcpy(temp,path);
+// 	strcpy(namewo,strtok(temp,titik));
+// 	sprintf(compres,"%s_deleted_%d-%d-%d_%d:%d:%d.zip\n",namewo,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+
+// 	if(strcmp(path,"/") == 0)
+// 	{
+// 		path=dirpath;
+// 		sprintf(final,"%s",path);
+// 	}
+// 	else {
+// 		strcpy(encode,path);
+// 		for(i=0;i<strlen(encode);i++) {
+// 			ch=encode[i];
+// 			if(ch=='/') {
+// 				encode[i]=ch;
+// 			}
+// 			else {
+// 				j=0;
+// 				while(ch!=charlist[j]) {
+// 					j++;
+// 				}
+// 				j=(j+17)%strlen(charlist);
+// 				encode[i]=charlist[j];
+// 			}
+// 		}
+// 		sprintf(encode,"%s%s",dirpath,encode);
+// 	}
+
+// 	sprintf(recyclebin,"%s/oO.k.EOX[)",dirpath);
+// 	mkdir(recyclebin,0660);
+
+// 	pid_t child_id;
+
+// 	child_id = fork();
+
+// 	if(child_id!=0) {
+
+// 	}
+
+// 	res = unlink(encode);
+// 	if(res == -1) {
+// 		return -errno;
+// 	}
+// 	return 0;
+
+// }
 
 static struct fuse_operations xmp_oper = {
 	.getattr		= xmp_getattr,
@@ -437,6 +552,7 @@ static struct fuse_operations xmp_oper = {
 	.read			= xmp_read,
 	.create         = xmp_create,
 	.write			= xmp_write,
+	// .unlink			= xmp_unlink,
 };
 
 int main(int argc, char *argv[])
