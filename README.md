@@ -13,6 +13,7 @@
 
 #### Jawab : 
 
+kita memiki filesystem yg terenkripsi, untuk mengakses nya harus di decrypts melaliui fuse, fungsi decrypt dijalankan saat di readdir akan menampilkan file di fuse, fungsi encrypt akan dijalankan setiap kali fungsi fuse dijalankan karena harus mencari refrensi ke file asli yg ter encrypt
 
 ### Nomer 2
 
@@ -28,6 +29,8 @@ Urutan operasi dari kebutuhan ini adalah:
   - Tepat saat file system akan di-unmount
       - Hapus semua file video yang berada di folder “Videos”, tapi jangan hapus file pecahan yang terdapat di root directory           file system
       - Hapus folder “Videos” 
+      
+   #### Jawab : 
   
   
   
@@ -41,12 +44,14 @@ Urutan operasi dari kebutuhan ini adalah:
    Jika ditemukan file dengan spesifikasi tersebut ketika membuka direktori, Atta akan menyimpan nama file, group ID, owner     ID, dan waktu terakhir diakses dalam file ```“filemiris.txt”``` (format waktu bebas, namun harus memiliki jam menit detik     dan tanggal) lalu menghapus “file bahaya” tersebut untuk mencegah serangan lanjutan dari LAPTOP_RUSAK.
    
   ##### Jawab : 
+  ada beberapa file dengan owner "ic_controller" dan "chipset" dengan group "rusak". file tersebut berbahay bagi system, oleh karena nya tidak boleh di mount ke dalam fuse, dan dicatat nama file owner id group id last access time nya ke dalam filemiris.txt
   
   
   ### Nomer 4
   Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis menjadi 750. Juga ketika membuat file permissionnya akan otomatis menjadi 640 dan ekstensi filenya akan bertambah “.iz1”. File berekstensi “.iz1” tidak bisa diubah permissionnya dan memunculkan error bertuliskan “File ekstensi iz1 tidak boleh diubah permissionnya.”
   
  #### Jawab : 
+ ada folder YOUTBER yang memiliki kasus khusus dimana setiap kali membuat folder dan file memiliki ketentuan khusus. dalam membuat folder dibuthkan fungsi xmp_mkdir, untuk file dibutuhkan xmp_create, xmp_write, xmp_truncate, dengan magic tertentu jadilah folder dan file yg dibuat memenhui ketentuan khusus
  
  
  ### Nomer 5
