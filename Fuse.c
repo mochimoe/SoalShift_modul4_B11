@@ -432,7 +432,7 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 		sprintf(final,"%s%s",dirpath,encode);
 	}
 
-		if(strcmp(namewo,"/") == 0) //backup files
+	if(strcmp(namewo,"/") == 0) //backup files
 	{
 		path=dirpath;
 		sprintf(final,"%s",path);
@@ -465,7 +465,7 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 	child_id = fork();
 
 	if(child_id!=0) {
-		char* argv[] = {"cp",fpath,namewo,NULL};
+		char* argv[] = {"cp",fpath,fpathB,NULL};
 		execv("/bin/cp",argv);
 	}
 
@@ -544,6 +544,46 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 
 // }
 
+static int xmp_truncate(const char *path, off_t size)
+{
+	int res;
+	char final[1000];
+	char ch;
+	int i,j;
+	// char extension[1000];
+
+	if(strcmp(path,"/") == 0) 
+	{
+		path=dirpath;
+		sprintf(final,"%s",path);
+	}
+	else {
+		char encode[strlen(path)];
+		strcpy(encode,path);
+		for(i=0;i<strlen(encode);i++) {
+			ch=encode[i];
+			if(ch=='/') {
+				encode[i]=ch;
+			}
+			else {
+				j=0;
+				while(ch!=charlist[j]) {
+					j++;
+				}
+				j=(j+17)%strlen(charlist);
+				encode[i]=charlist[j];
+			}
+		}
+		sprintf(final,"%s%s",dirpath,encode);
+	}
+
+	res = truncate(final, size);
+	if (res == -1)
+		return -errno;
+
+	return 0;
+}
+
 static struct fuse_operations xmp_oper = {
 	.getattr		= xmp_getattr,
 	.mkdir			= xmp_mkdir,
@@ -553,6 +593,7 @@ static struct fuse_operations xmp_oper = {
 	.create         = xmp_create,
 	.write			= xmp_write,
 	// .unlink			= xmp_unlink,
+	.truncate		= xmp_truncate,
 };
 
 int main(int argc, char *argv[])
