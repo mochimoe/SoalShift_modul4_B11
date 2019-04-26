@@ -11,7 +11,7 @@
 
    Perhatian: Karakter ‘/’ adalah karakter ilegal dalam penamaan file atau folder dalam *NIX, maka dari itu dapat diabaikan
 
-#### Solusi 
+#### Jawab : 
 
 
 ### Nomer 2
@@ -28,7 +28,26 @@ Urutan operasi dari kebutuhan ini adalah:
   - Tepat saat file system akan di-unmount
       - Hapus semua file video yang berada di folder “Videos”, tapi jangan hapus file pecahan yang terdapat di root directory           file system
       - Hapus folder “Videos” 
-      
-    
-   ### Nomer 3
+  
+  
+  
+ ### Nomer 3
+   Sebelum diterapkannya file system ini, Atta pernah diserang oleh hacker LAPTOP_RUSAK yang menanamkan user bernama            “chipset” dan “ic_controller” serta group “rusak” yang tidak bisa dihapus. Karena paranoid, Atta menerapkan aturan pada       file system ini untuk menghapus “file bahaya” yang memiliki spesifikasi:
  
+        - Owner Name 	: ‘chipset’ atau ‘ic_controller’
+        - Group Name	: ‘rusak’
+        - Tidak dapat dibaca
+
+   Jika ditemukan file dengan spesifikasi tersebut ketika membuka direktori, Atta akan menyimpan nama file, group ID, owner     ID, dan waktu terakhir diakses dalam file ```“filemiris.txt”``` (format waktu bebas, namun harus memiliki jam menit detik     dan tanggal) lalu menghapus “file bahaya” tersebut untuk mencegah serangan lanjutan dari LAPTOP_RUSAK.
+   
+  ##### Jawab : 
+  
+  
+  ### Nomer 4
+  Pada folder YOUTUBER, setiap membuat folder permission foldernya akan otomatis menjadi 750. Juga ketika membuat file permissionnya akan otomatis menjadi 640 dan ekstensi filenya akan bertambah “.iz1”. File berekstensi “.iz1” tidak bisa diubah permissionnya dan memunculkan error bertuliskan “File ekstensi iz1 tidak boleh diubah permissionnya.”
+  
+ #### Jawab : 
+ 
+ 
+ ### Nomer 5
+
