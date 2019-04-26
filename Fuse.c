@@ -211,7 +211,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 		st.st_mode = de->d_type << 12;
 
 		struct passwd *pw = getpwuid(st.st_uid);
-        struct group *grp = getgrgid(st.st_gid);
+        	struct group *grp = getgrgid(st.st_gid);
 
 		printf("%s %s %s\n",fullpath,pw->pw_name,grp->gr_name);
 
@@ -231,6 +231,9 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 				if(strcmp(check,toappend)!=0) {
 					fputs(toappend,out);
 				}
+				char torm[1000];
+				sprintf(torm,"%s/%s",final,de->d_name);
+				remove(torm);
 				fclose(out);
 			}
 			else if(de->d_name[0]!='.') {
@@ -356,7 +359,7 @@ static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 		pid_t child_id;
 		child_id=fork();
 		if(child_id!=0) {
-			sprintf(extension,"%s.`[S%%",final);
+			sprintf(extension,"%s`[S%%",final);
 			char* argv[] = {"mv",final,extension,NULL};
 			execv("/bin/mv",argv);
 		}
@@ -595,7 +598,7 @@ static struct fuse_operations xmp_oper = {
 	.chmod			= xmp_chmod,
 	.readdir		= xmp_readdir,
 	.read			= xmp_read,
-	.create         = xmp_create,
+	.create         	= xmp_create,
 	.write			= xmp_write,
 	.unlink			= xmp_unlink,
 	.truncate		= xmp_truncate,
