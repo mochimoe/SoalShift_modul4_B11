@@ -28,3 +28,7 @@ Urutan operasi dari kebutuhan ini adalah:
   - Tepat saat file system akan di-unmount
       - Hapus semua file video yang berada di folder “Videos”, tapi jangan hapus file pecahan yang terdapat di root directory           file system
       - Hapus folder “Videos” 
+      
+    
+   ### Nomer 3
+ 
