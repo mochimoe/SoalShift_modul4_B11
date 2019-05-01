@@ -16,11 +16,42 @@ const char* owner1 = "chipset";
 const char* owner2 = "ic_controller";
 const char* group = "rusak";
 const char charlist[1000]="qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
+char filename[1000];
+int key=17;
 
 static const char *dirpath = "/home/iotatfan/shift4/AFSHiaAP";
+static const char *backupdir = "/home/iotatfan/shift4/AFSHiaAP/XB.Jhu";
 
-static int xmp_getattr(const char *path, struct stat *stbuf)
-{
+void getfilename(char path[]) {
+	int k=strlen(path);
+	char ch;
+	while(path[k]!='/') {
+		k--;
+	}
+	int i;
+	int j;
+	for(i=0;i<strlen(path)-k;i++) {
+		filename[i]=path[k];
+		k++;
+	}
+	strcpy(filename,path);
+	for(i=0;i<strlen(filename);i++) {
+		ch=filename[i];
+		if(ch=='/') {
+			filename[i]=ch;
+		}
+		else {
+			j=0;
+			while(ch!=charlist[j]) {
+				j++;
+			}
+			j=(j+key)%strlen(charlist);
+			filename[i]=charlist[j];
+		}
+	}
+}
+
+static int xmp_getattr(const char *path, struct stat *stbuf) {
 	// const char charlist[1000]="qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
 	int key = 17;
 	char ch;
@@ -58,14 +89,21 @@ static int xmp_getattr(const char *path, struct stat *stbuf)
 	return 0;
 }
 
-static int xmp_mkdir(const char *path, mode_t mode)
-{
+static int xmp_mkdir(const char *path, mode_t mode) {
 	char final[1000];
 	int i,j;
 	char ch;
+	int count=0;
 
 	if(strstr(path,"YOUTUBER")) {
-		mode=0750;
+		for(i=0;i<strlen(path);i++) {
+			if(path[i]=='/') {
+				count++;
+			}
+		}
+		if(count<3) {
+			mode=0750;
+		}
 	}
 
 	if(strcmp(path,"/") == 0)
@@ -101,8 +139,7 @@ static int xmp_mkdir(const char *path, mode_t mode)
     return 0;
 }
 
-static int xmp_chmod(const char *path, mode_t mode)
-{
+static int xmp_chmod(const char *path, mode_t mode) {
     int res;
 
 	char final[1000];
@@ -153,8 +190,7 @@ static int xmp_chmod(const char *path, mode_t mode)
     return 0;
 }
 
-static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi)
-{
+static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
 	char final[1000];
 	int key = 17;
     char ch;
@@ -211,11 +247,11 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 		st.st_mode = de->d_type << 12;
 
 		struct passwd *pw = getpwuid(st.st_uid);
-        	struct group *grp = getgrgid(st.st_gid);
+        struct group *grp = getgrgid(st.st_gid);
 
 		printf("%s %s %s\n",fullpath,pw->pw_name,grp->gr_name);
 
-		if(strcmp(de->d_name,".")!=0 && strcmp(de->d_name,"..")!=0) {
+		if(strcmp(de->d_name,".")!=0 && strcmp(de->d_name,"..")!=0 && strcmp(de->d_name,".directory")!=0) {
 			if((strcmp(owner1,pw->pw_name)==0 || strcmp(owner2,pw->pw_name)==0) && strcmp(group,grp->gr_name)==0) {
 				FILE *out;
 				char toappend[1000];
@@ -236,7 +272,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 				remove(torm);
 				fclose(out);
 			}
-			else if(de->d_name[0]!='.') {
+			else {
 				strcpy(decode,de->d_name);
 
 				for(i=0;i<strlen(decode);i++) {
@@ -256,7 +292,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 						decode[i]=charlist[j];
 					}
 				}
-
+				
 				strcpy(de->d_name,decode);
 
 				res = (filler(buf, de->d_name, &st, 0));
@@ -268,8 +304,7 @@ static int xmp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_
 	return 0;
 }
 
-static int xmp_read(const char *path, char *buf, size_t size, off_t offset,struct fuse_file_info *fi)
-{
+static int xmp_read(const char *path, char *buf, size_t size, off_t offset,struct fuse_file_info *fi) {
 	char final[1000];
 	int res = 0;
 	int fd = 0 ;
@@ -320,8 +355,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,struc
 	return res;
 }
 
-static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
-{
+static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
     int res;
 	char final[1000];
 	char ch;
@@ -354,14 +388,26 @@ static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	}
 
 	if(strstr(path,"YOUTUBER")) {
-		res = creat(final, 0640);
+		int count;
+		for(i=0;i<strlen(path);i++) {
+			if(path[i]=='/') {
+				count++;
+			}
+		}
+
+		if(count<3)  {
+			res = creat(final, 0640);
 		
-		pid_t child_id;
-		child_id=fork();
-		if(child_id!=0) {
-			sprintf(extension,"%s`[S%%",final);
-			char* argv[] = {"mv",final,extension,NULL};
-			execv("/bin/mv",argv);
+			pid_t child_id;
+			child_id=fork();
+			if(child_id!=0) {
+				sprintf(extension,"%s`[S%%",final);
+				char* argv[] = {"mv",final,extension,NULL};
+				execv("/bin/mv",argv);
+			}
+		}
+		else {
+			res = creat(final, mode);	
 		}
 	}
 	else {
@@ -375,8 +421,7 @@ static int xmp_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 	return 0;
 }
 
-static int xmp_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi)
-{
+static int xmp_write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
     int fd;
     int res;
 	char final[1000];
@@ -385,31 +430,18 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 	int i,j;
 	char fpath[1000];
 	char fpathB[1000];
-	char namewo[1000];
 	char backup[1000];
-	char habistitik[100];
-	char extension[1000];
-	char temp[1000];
+
 	time_t rawtime;
 
 	time(&rawtime);
 	struct tm* ptm=localtime(&rawtime);
 
-	for(i=0;i<strlen(path);i++) {
-		if(path[i]=='.') {
-			int k=0;
-			for(j=i;j<strlen(path);j++) {
-				habistitik[k]=path[j];
-			}
-			break;
-		}
-	}
+	strcpy(backup,path);
+	getfilename(backup);
+	sprintf(fpathB,"%s%s",backupdir,filename);
 
-	strcpy(extension,path);
-	strcpy(temp,strtok(extension,"."));
-	sprintf(namewo,"%s_%d-%d-%d_%d:%d:%d.%s\n",namewo,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,habistitik);
-	strcpy(backup,"/home/iotatfan/shift4/AFSHiaAP/XB.Jhu");
-	mkdir(backup,0770);
+	printf("FILENAME %s ",filename);
 
 	if(strcmp(path,"/") == 0)
 	{
@@ -436,31 +468,6 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 		sprintf(final,"%s%s",dirpath,encode);
 	}
 
-	if(strcmp(namewo,"/") == 0) //backup files
-	{
-		path=backup;
-		sprintf(fpathB,"%s",path);
-	}
-	else {
-		char encodeB[strlen(namewo)];
-		strcpy(encodeB,namewo);
-		for(i=0;i<strlen(encodeB);i++) {
-			ch=encodeB[i];
-			if(ch=='/') {
-				encodeB[i]=ch;
-			}
-			else {
-				j=0;
-				while(ch!=charlist[j]) {
-					j++;
-				}
-				j=(j+key)%strlen(charlist);
-				encodeB[i]=charlist[j];
-			}
-		}
-		strcat(backup,encodeB);
-		strcpy(fpathB,backup);
-	}
 	strcpy(fpath,final);
 
 	fd = open(fpath, O_WRONLY);
@@ -468,16 +475,14 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 		return -errno;
 	}
 
+	res = pwrite(fd, buf, size, offset);
+
 	pid_t child_id;
 	child_id = fork();
 
     if(child_id!=0) {
-		res = pwrite(fd, buf, size, offset);
 		char* argv[] = {"cp",fpath,fpathB,NULL};
 		execv("/bin/cp",argv);
-	}
-	else {
-		res = pwrite(fd, buf, size, offset);
 	}
 
     if(res == -1) {
@@ -488,17 +493,17 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
     return res;
 }
 
-static int xmp_unlink(const char* path) {
-	int res;
-	char final[1000];
+// static int xmp_unlink(const char* path) {
+// 	int res;
+// 	char final[1000];
 	// char namewo[1000];
 	// char compres[1000];
-	char encode[strlen(path)];
+	// char encode[strlen(path)];
 	// char recyclebin[1000];
 	// char temp[1000];
 	// char titik[8] = ".";
-	int i,j;
-	char ch;
+	// int i,j;
+	// char ch;
 	// time_t rawtime;
 
 	// time(&rawtime);
@@ -508,30 +513,30 @@ static int xmp_unlink(const char* path) {
 	// strcpy(namewo,strtok(temp,titik));
 	// sprintf(compres,"%s_deleted_%d-%d-%d_%d:%d:%d.zip\n",namewo,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
 
-	if(strcmp(path,"/") == 0)
-	{
-		path=dirpath;
-		sprintf(final,"%s",path);
-	}
-	else {
-		strcpy(encode,path);
-		for(i=0;i<strlen(encode);i++) {
-			ch=encode[i];
-			if(ch=='/') {
-				encode[i]=ch;
-			}
-			else {
-				j=0;
-				while(ch!=charlist[j]) {
-					j++;
-				}
-				j=(j+17)%strlen(charlist);
-				encode[i]=charlist[j];
-			}
-		}
-		sprintf(encode,"%s%s",dirpath,encode);
-	}
-	strcpy(final,encode);
+	// if(strcmp(path,"/") == 0)
+	// {
+	// 	path=dirpath;
+	// 	sprintf(final,"%s",path);
+	// }
+	// else {
+	// 	strcpy(encode,path);
+	// 	for(i=0;i<strlen(encode);i++) {
+	// 		ch=encode[i];
+	// 		if(ch=='/') {
+	// 			encode[i]=ch;
+	// 		}
+	// 		else {
+	// 			j=0;
+	// 			while(ch!=charlist[j]) {
+	// 				j++;
+	// 			}
+	// 			j=(j+17)%strlen(charlist);
+	// 			encode[i]=charlist[j];
+	// 		}
+	// 	}
+	// 	sprintf(encode,"%s%s",dirpath,encode);
+	// }
+	// strcpy(final,encode);
 
 	// sprintf(recyclebin,"%s/oO.k.EOX[)",dirpath);
 	// mkdir(recyclebin,0660);
@@ -544,13 +549,13 @@ static int xmp_unlink(const char* path) {
 
 	// }
 
-	res = unlink(final);
-	if(res == -1) {
-		return -errno;
-	}
-	return 0;
+// 	res = unlink(final);
+// 	if(res == -1) {
+// 		return -errno;
+// 	}
+// 	return 0;
 
-}
+// }
 
 static int xmp_truncate(const char *path, off_t size)
 {
@@ -558,7 +563,6 @@ static int xmp_truncate(const char *path, off_t size)
 	char final[1000];
 	char ch;
 	int i,j;
-	// char extension[1000];
 
 	if(strcmp(path,"/") == 0) 
 	{
@@ -598,9 +602,9 @@ static struct fuse_operations xmp_oper = {
 	.chmod			= xmp_chmod,
 	.readdir		= xmp_readdir,
 	.read			= xmp_read,
-	.create         	= xmp_create,
+	.create         = xmp_create,
 	.write			= xmp_write,
-	.unlink			= xmp_unlink,
+	// .unlink			= xmp_unlink,
 	.truncate		= xmp_truncate,
 };
 
