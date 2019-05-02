@@ -51,8 +51,49 @@ void getfilename(char path[]) {
 	}
 }
 
+void backuptimestamp(char path[]) {
+	char extension[10];
+	int i,j,dotin;
+	for(i=strlen(path);path[i]!='.';i--) {
+		dotin=i;
+	}
+	j=0;
+	for(i=dotin;i<strlen(path);i++) {
+		extension[j]=path[i];
+		j++;
+	}
+
+	time_t rawtime;
+	struct tm* ptm;
+	
+	time(&rawtime);
+	ptm=localtime(&rawtime);
+
+	char noext[1000];
+	char addtimestamp[1000];
+	char ch;
+
+	strcpy(noext,strtok(path,"."));
+	sprintf(addtimestamp,"%s_%d-%.2d-%.2d_%.2d:%.2d:%.2d.%s",noext,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec,extension);
+	strcpy(filename,addtimestamp);
+
+	for(i=0;i<strlen(filename);i++) {
+		ch=filename[i];
+		if(ch=='/') {
+			filename[i]=ch;
+		}
+		else {
+			j=0;
+			while(ch!=charlist[j]) {
+				j++;
+			}
+			j=(j+key)%strlen(charlist);
+			filename[i]=charlist[j];
+		}
+	}
+}
+
 static int xmp_getattr(const char *path, struct stat *stbuf) {
-	// const char charlist[1000]="qE1~ YMUR2\"`hNIdPzi%^t@(Ao:=CQ,nx4S[7mHFye#aT6+v)DfKL$r?bkOGB>}!9_wV']jcp5JZ&Xl|\\8s;g<{3.u*W-0";
 	int key = 17;
 	char ch;
 	int i,j,res;
@@ -432,16 +473,12 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 	char fpathB[1000];
 	char backup[1000];
 
-	time_t rawtime;
-
-	time(&rawtime);
-	struct tm* ptm=localtime(&rawtime);
-
 	strcpy(backup,path);
 	getfilename(backup);
+	backuptimestamp(backup);
 	sprintf(fpathB,"%s%s",backupdir,filename);
 
-	printf("FILENAME %s ",filename);
+	// printf("FILENAME %s ",filename);
 
 	if(strcmp(path,"/") == 0)
 	{
