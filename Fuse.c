@@ -473,10 +473,13 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
 	char fpathB[1000];
 	char backup[1000];
 
-	strcpy(backup,path);
-	getfilename(backup);
-	backuptimestamp(backup);
-	sprintf(fpathB,"%s%s",backupdir,filename);
+	if(!strstr(path,".swp")) {
+		strcpy(backup,path);
+		getfilename(backup);
+		backuptimestamp(backup);
+		sprintf(fpathB,"%s%s",backupdir,filename);
+	}
+	
 
 	// printf("FILENAME %s ",filename);
 
@@ -530,69 +533,45 @@ static int xmp_write(const char *path, const char *buf, size_t size, off_t offse
     return res;
 }
 
-// static int xmp_unlink(const char* path) {
-// 	int res;
-// 	char final[1000];
-	// char namewo[1000];
-	// char compres[1000];
-	// char encode[strlen(path)];
-	// char recyclebin[1000];
-	// char temp[1000];
-	// char titik[8] = ".";
-	// int i,j;
-	// char ch;
-	// time_t rawtime;
+static int xmp_unlink(const char* path) {
+	int res;
 
-	// time(&rawtime);
-	// struct tm* ptm=localtime(&rawtime);
-	
-	// strcpy(temp,path);
-	// strcpy(namewo,strtok(temp,titik));
-	// sprintf(compres,"%s_deleted_%d-%d-%d_%d:%d:%d.zip\n",namewo,ptm->tm_year+1900,ptm->tm_mon+1,ptm->tm_mday,ptm->tm_hour,ptm->tm_min,ptm->tm_sec);
+	char final[1000];
+	char ch;
+	int i,j;
 
-	// if(strcmp(path,"/") == 0)
-	// {
-	// 	path=dirpath;
-	// 	sprintf(final,"%s",path);
-	// }
-	// else {
-	// 	strcpy(encode,path);
-	// 	for(i=0;i<strlen(encode);i++) {
-	// 		ch=encode[i];
-	// 		if(ch=='/') {
-	// 			encode[i]=ch;
-	// 		}
-	// 		else {
-	// 			j=0;
-	// 			while(ch!=charlist[j]) {
-	// 				j++;
-	// 			}
-	// 			j=(j+17)%strlen(charlist);
-	// 			encode[i]=charlist[j];
-	// 		}
-	// 	}
-	// 	sprintf(encode,"%s%s",dirpath,encode);
-	// }
-	// strcpy(final,encode);
+	if(strcmp(path,"/") == 0) 
+	{
+		path=dirpath;
+		sprintf(final,"%s",path);
+	}
+	else {
+		char encode[strlen(path)];
+		strcpy(encode,path);
+		for(i=0;i<strlen(encode);i++) {
+			ch=encode[i];
+			if(ch=='/') {
+				encode[i]=ch;
+			}
+			else {
+				j=0;
+				while(ch!=charlist[j]) {
+					j++;
+				}
+				j=(j+17)%strlen(charlist);
+				encode[i]=charlist[j];
+			}
+		}
+		sprintf(final,"%s%s",dirpath,encode);
+	}
 
-	// sprintf(recyclebin,"%s/oO.k.EOX[)",dirpath);
-	// mkdir(recyclebin,0660);
+	res = unlink(final);
+	if (res == -1)
+		return -errno;
 
-	// pid_t child_id;
+	return 0;
+}
 
-	// child_id = fork();
-
-	// if(child_id!=0) {
-
-	// }
-
-// 	res = unlink(final);
-// 	if(res == -1) {
-// 		return -errno;
-// 	}
-// 	return 0;
-
-// }
 
 static int xmp_truncate(const char *path, off_t size)
 {
@@ -641,7 +620,7 @@ static struct fuse_operations xmp_oper = {
 	.read			= xmp_read,
 	.create         = xmp_create,
 	.write			= xmp_write,
-	// .unlink			= xmp_unlink,
+	.unlink			= xmp_unlink,
 	.truncate		= xmp_truncate,
 };
 
